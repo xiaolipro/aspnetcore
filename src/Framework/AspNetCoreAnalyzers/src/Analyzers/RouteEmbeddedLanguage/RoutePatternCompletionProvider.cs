@@ -110,7 +110,8 @@ public class RoutePatternCompletionProvider : CompletionProvider
         var (methodSymbol, _, isMinimal, isMvcAttribute) = RoutePatternUsageDetector.BuildContext(stringToken, semanticModel, wellKnownTypes, context.CancellationToken);
 
         var virtualChars = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(stringToken);
-        var tree = RoutePatternParser.TryParse(virtualChars, supportTokenReplacement: isMvcAttribute);
+        var routePatternOptions = isMvcAttribute ? RoutePatternOptions.MvcAttributeRoute : RoutePatternOptions.DefaultRoute;
+        var tree = RoutePatternParser.TryParse(virtualChars, routePatternOptions);
         if (tree == null)
         {
             return;

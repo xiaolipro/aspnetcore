@@ -65,7 +65,8 @@ public class RoutePatternAnalyzer : DiagnosticAnalyzer
                 var usageContext = RoutePatternUsageDetector.BuildContext(token, context.SemanticModel, wellKnownTypes, cancellationToken);
 
                 var virtualChars = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
-                var tree = RoutePatternParser.TryParse(virtualChars, supportTokenReplacement: usageContext.IsMvcAttribute);
+                var routePatternOptions = usageContext.IsMvcAttribute ? RoutePatternOptions.MvcAttributeRoute : RoutePatternOptions.DefaultRoute;
+                var tree = RoutePatternParser.TryParse(virtualChars, routePatternOptions);
                 if (tree == null)
                 {
                     continue;

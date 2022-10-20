@@ -26,7 +26,8 @@ internal class RoutePatternBraceMatcher : IAspNetCoreEmbeddedLanguageBraceMatche
         var usageContext = RoutePatternUsageDetector.BuildContext(token, semanticModel, wellKnownTypes, cancellationToken);
 
         var virtualChars = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
-        var tree = RoutePatternParser.TryParse(virtualChars, supportTokenReplacement: usageContext.IsMvcAttribute);
+        var routePatternOptions = usageContext.IsMvcAttribute ? RoutePatternOptions.MvcAttributeRoute : RoutePatternOptions.DefaultRoute;
+        var tree = RoutePatternParser.TryParse(virtualChars, routePatternOptions);
         if (tree == null)
         {
             return null;
