@@ -42,6 +42,8 @@ public static class WebHostBuilderKestrelExtensions
             // Don't override an already-configured transport
             services.TryAddSingleton<IConnectionListenerFactory, SocketTransportFactory>();
 
+            services.AddNamedPipes();
+
             services.AddTransient<IConfigureOptions<KestrelServerOptions>, KestrelServerOptionsSetup>();
             services.AddSingleton<IServer, KestrelServerImpl>();
         });
