@@ -78,6 +78,31 @@ public class AddressBinderTests
         Assert.False(https);
     }
 
+    [Fact]
+    public void ParseAddressNamedPipe()
+    {
+        var listenOptions = AddressBinder.ParseAddress("http://pipe:HelloWorld", out var https);
+        Assert.IsType<NamedPipeEndPoint>(listenOptions.EndPoint);
+        Assert.Equal("HelloWorld", listenOptions.PipeName);
+        Assert.False(https);
+    }
+
+    [Fact]
+    public void ParseAddressNamedPipe_ForwardSlashes()
+    {
+        var listenOptions = AddressBinder.ParseAddress("http://pipe:/tmp/kestrel-test.sock", out var https);
+        Assert.IsType<NamedPipeEndPoint>(listenOptions.EndPoint);
+        Assert.Equal("/tmp/kestrel-test.sock", listenOptions.PipeName);
+        Assert.False(https);
+    }
+
+    [Fact]
+    public void ParseAddressNamedPipe_ErrorFromBackslash()
+    {
+        var ex = Assert.Throws<FormatException>(() => AddressBinder.ParseAddress(@"http://pipe:this\is\invalid", out var https));
+        Assert.Equal(@"Invalid url, pipe name must not contain backslashes: 'http://pipe:this\is\invalid'", ex.Message);
+    }
+
     [ConditionalFact]
     [OSSkipCondition(OperatingSystems.Windows, SkipReason = "tmp/kestrel-test.sock is not valid for windows. Unix socket path must be absolute.")]
     public void ParseAddressUnixPipe()

@@ -281,6 +281,57 @@ public class WebHostTests : LoggedTest
         }
     }
 
+    [Fact]
+    public async Task ListenNamedPipeEndpoint_FromUrl_HelloWorld_ClientSuccess()
+    {
+        // Arrange
+        using var httpEventSource = new HttpEventSourceListener(LoggerFactory);
+        var pipeName = NamedPipeTestHelpers.GetUniquePipeName();
+        var url = $"http://pipe:{pipeName}";
+
+        var builder = new HostBuilder()
+            .ConfigureWebHost(webHostBuilder =>
+            {
+                webHostBuilder
+                    .UseUrls(url)
+                    .UseKestrel()
+                    .Configure(app =>
+                    {
+                        app.Run(async context =>
+                        {
+                            await context.Response.WriteAsync("hello, world");
+                        });
+                    });
+            })
+            .ConfigureServices(AddTestLogging);
+
+        using (var host = builder.Build())
+        using (var client = CreateClient(pipeName))
+        {
+            await host.StartAsync().DefaultTimeout();
+
+            var request = new HttpRequestMessage(HttpMethod.Get, $"http://127.0.0.1/")
+            {
+                Version = HttpVersion.Version11,
+                VersionPolicy = HttpVersionPolicy.RequestVersionExact
+            };
+
+            // Act
+            var response = await client.SendAsync(request).DefaultTimeout();
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            Assert.Equal(HttpVersion.Version11, response.Version);
+            var responseText = await response.Content.ReadAsStringAsync().DefaultTimeout();
+            Assert.Equal("hello, world", responseText);
+
+            await host.StopAsync().DefaultTimeout();
+        }
+
+        var listeningOn = TestSink.Writes.Single(m => m.EventId.Name == "ListeningOnAddress");
+        Assert.Equal($"Now listening on: {url}", listeningOn.Message);
+    }
+
     private static HttpClient CreateClient(string pipeName, TokenImpersonationLevel? impersonationLevel = null)
     {
         var httpHandler = new SocketsHttpHandler

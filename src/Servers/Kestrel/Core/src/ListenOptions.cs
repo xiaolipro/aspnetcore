@@ -72,7 +72,7 @@ public class ListenOptions : IConnectionBuilder, IMultiplexedConnectionBuilder
     /// <remarks>
     /// Only set if the <see cref="ListenOptions"/> is bound to a <see cref="NamedPipeEndPoint"/>.
     /// </remarks>
-    public string? PipeName => (EndPoint as NamedPipeEndPoint)?.ToString();
+    public string? PipeName => (EndPoint as NamedPipeEndPoint)?.PipeName.ToString();
 
     /// <summary>
     /// Gets the bound file descriptor to a socket.
@@ -137,6 +137,8 @@ public class ListenOptions : IConnectionBuilder, IMultiplexedConnectionBuilder
         {
             case UnixDomainSocketEndPoint _:
                 return $"{Scheme}://unix:{EndPoint}";
+            case NamedPipeEndPoint namedPipeEndPoint:
+                return $"{Scheme}://pipe:{namedPipeEndPoint.PipeName}";
             case FileHandleEndPoint _:
                 return $"{Scheme}://<file handle>";
             default:

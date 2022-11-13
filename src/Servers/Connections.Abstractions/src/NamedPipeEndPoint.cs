@@ -47,7 +47,8 @@ public sealed class NamedPipeEndPoint : EndPoint
     /// </summary>
     public override string ToString()
     {
-        return $"pipe:{ServerName}/{PipeName}";
+        // Based on format at https://learn.microsoft.com/windows/win32/ipc/pipe-names
+        return $@"\\{ServerName}\pipe\{PipeName}";
     }
 
     /// <inheritdoc/>
