@@ -94,6 +94,14 @@ public class WebHostTests : LoggedTest
                             listenOptions.Protocols = HttpProtocols.Http1;
                         });
                     })
+                    .UseNamedPipes(options =>
+                    {
+                        var ps = new PipeSecurity();
+                        ps.AddAccessRule(new PipeAccessRule("Users", PipeAccessRights.ReadWrite | PipeAccessRights.CreateNewInstance, AccessControlType.Allow));
+
+                        options.PipeSecurity = ps;
+                        options.CurrentUserOnly = false;
+                    })
                     .Configure(app =>
                     {
                         app.Run(async context =>
@@ -119,14 +127,6 @@ public class WebHostTests : LoggedTest
             .ConfigureServices(services =>
             {
                 AddTestLogging(services);
-                services.AddNamedPipes(options =>
-                {
-                    var ps = new PipeSecurity();
-                    ps.AddAccessRule(new PipeAccessRule("Users", PipeAccessRights.ReadWrite | PipeAccessRights.CreateNewInstance, AccessControlType.Allow));
-
-                    options.PipeSecurity = ps;
-                    options.CurrentUserOnly = false;
-                });
             });
 
         using (var host = builder.Build())
